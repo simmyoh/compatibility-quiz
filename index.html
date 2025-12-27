@@ -265,7 +265,6 @@ const state = {
   personB: null,
 };
 
-// prevent repeated auto-scroll per section completion
 const sectionCompletion = {}; // secIndex -> boolean
 
 function getAllQuestionsWithSections() {
@@ -341,7 +340,6 @@ function updateProgress() {
     const wasCompleteBefore = !!sectionCompletion[idx];
     sectionCompletion[idx] = isCompleteNow;
 
-    // only on transition incomplete -> complete
     if (isCompleteNow && !wasCompleteBefore) {
       details.open = false;
 
@@ -366,7 +364,8 @@ function renderQuiz() {
   let globalIndex = 0;
 
   sections.forEach((sec, secIndex) => {
-    const details = el("details", { class: "section", open: "open", id: `sec_${secIndex}` });
+    // CHANGE: start collapsed (no default open)
+    const details = el("details", { class: "section", id: `sec_${secIndex}` });
     const summary = el("summary", { class: "sectionSummary" });
 
     const left = el("div", { class:"secLeft" },
@@ -451,9 +450,7 @@ function renderQuiz() {
     mount.appendChild(details);
   });
 
-  // reset completion memory on rerender
   for (const k in sectionCompletion) delete sectionCompletion[k];
-
   updateProgress();
 }
 
@@ -516,21 +513,16 @@ function classify(aVal, bVal, aText, bText) {
 
 function compareAnswers(a, b) {
   const flat = getAllQuestionsFlat();
-
   return flat.map((q) => {
     const aVal = a.answers[q.id];
     const bVal = b.answers[q.id];
-
     const aText = Number.isInteger(aVal) ? CONFIG.shared_choices[aVal] : "(no answer)";
     const bText = Number.isInteger(bVal) ? CONFIG.shared_choices[bVal] : "(no answer)";
-
     const aDiscuss = !!(a.discuss && a.discuss[q.id]);
     const bDiscuss = !!(b.discuss && b.discuss[q.id]);
     const bothDiscuss = aDiscuss && bDiscuss;
-
     const status = classify(aVal, bVal, aText, bText);
     const blurAnswers = (status === "mismatch") && !bothDiscuss;
-
     return { qid:q.id, prompt:q.prompt, aText, bText, aDiscuss, bDiscuss, bothDiscuss, status, blurAnswers };
   });
 }
@@ -545,7 +537,6 @@ function renderResults() {
   }
 
   const items = compareAnswers(state.personA, state.personB);
-
   const perfectCount = items.filter(x => x.status === "perfect").length;
   const matchCount = items.filter(x => x.status === "match").length;
   const mismatchCount = items.filter(x => x.status === "mismatch").length;
@@ -565,29 +556,24 @@ function renderResults() {
   items.forEach((it, idx) => {
     const isPerfect = it.status === "perfect";
     const isMatch = it.status === "match";
-
     const statusPillClass = isPerfect ? "pill perfect" : (isMatch ? "pill good" : "pill bad");
     const statusPillText = isPerfect ? "⭐ PERFECT MATCH" : (isMatch ? "✅ MATCH" : "❗ MISMATCH");
     const answerPillClass = isPerfect ? "pill perfect" : (isMatch ? "pill good" : "pill bad");
 
     const card = el("div", { class:"resultItem" });
-
     card.appendChild(el("div", { class:"qhead" },
       el("div", { class:"qnum", text:`#${idx + 1}` }),
       el("div", { class: statusPillClass, text: statusPillText })
     ));
-
     card.appendChild(el("div", { class:"prompt", text: it.prompt }));
 
     const aAns = el("div", { class: answerPillClass }, `${state.personA.name}: ${it.aText}`);
     const bAns = el("div", { class: answerPillClass }, `${state.personB.name}: ${it.bText}`);
-
     if (it.blurAnswers) { aAns.classList.add("blurred"); bAns.classList.add("blurred"); }
 
     card.appendChild(el("div", { class:"ansline" }, aAns, bAns));
 
     const sub = el("div", { class:"subline" });
-
     if (it.blurAnswers) {
       const revealBtn = el("button", { type:"button", class:"tiny" }, "Reveal answers");
       revealBtn.addEventListener("click", () => {
