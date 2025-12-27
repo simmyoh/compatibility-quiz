@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Compatibility Quiz</title>
+  <style>
+    :root {
+      --bg:#0b1020;
+      --muted:#a7b0d6;
+      --text:#eef1ff;
+      --border: rgba(255,255,255,0.14);
+      --accent:#7aa2ff;
+      --good:#31d07f;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --info:#7fd6ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; padding:18px;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1100px 800px at 15% 0%, rgba(122,162,255,0.18), transparent 60%),
+        radial-gradient(900px 600px at 85% 10%, rgba(49,208,127,0.12), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:1120px;margin:0 auto}
+    header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
+    h1{margin:0;font-size:22px}
+    .meta{color:var(--muted);font-size:13px;line-height:1.35}
+    .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    input[type="text"]{
+      padding:10px 12px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(0,0,0,0.25);color:var(--text);min-width:220px;outline:none;
+    }
+    button{
+      border:1px solid var(--border);
+      background:rgba(122,162,255,0.12);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:800;
+    }
+    button:hover{border-color:rgba(122,162,255,0.65)}
+    button.primary{background:rgba(122,162,255,0.24); border-color:rgba(122,162,255,0.45)}
+    button.bad{background:rgba(255,92,122,0.12)}
+    button.tiny{padding:8px 10px; font-weight:800; font-size:12px; border-radius:10px}
+    button.discussOn{border-color: rgba(255, 209, 102, 0.7); background: rgba(255, 209, 102, 0.14);}
+
+    .card{
+      border:1px solid var(--border);border-radius:16px;padding:14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      box-shadow:0 10px 30px rgba(0,0,0,0.25);margin-bottom:12px;
+    }
+    .split{display:grid;grid-template-columns:1fr;gap:12px}
+    @media (min-width: 980px){ .split{grid-template-columns: 1fr 1fr;} }
+
+    .qhead{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+    .qnum{color:var(--muted);font-size:12px}
+    .prompt{margin:8px 0 10px;font-size:16px;line-height:1.35}
+
+    .choices{display:flex;flex-wrap:wrap;gap:10px}
+    .choice{
+      display:flex;gap:10px;align-items:center;
+      padding:10px 12px;border:1px solid var(--border);border-radius:12px;
+      background:rgba(0,0,0,0.18);cursor:pointer;user-select:none;
+      min-width: 150px;flex: 1 1 150px;
+      transition: transform 70ms ease, border-color 90ms ease, background 90ms ease;
+    }
+    .choice:hover{border-color:rgba(122,162,255,0.6)}
+    .choice:active{transform: scale(0.99)}
+    input[type="radio"]{transform:translateY(1px)}
+    .choice.selected{
+      border-color: rgba(122,162,255,0.75);
+      background: rgba(122,162,255,0.22);
+      box-shadow: inset 0 0 0 1px rgba(122,162,255,0.45);
+    }
+    .choice.selected span{font-weight:900}
+    .choice input[type="radio"]{opacity:0.35}
+    .choice.selected input[type="radio"]{opacity:0.9}
+
+    .pill{
+      padding:6px 10px;border-radius:999px;font-size:12px;border:1px solid var(--border);
+      color:var(--muted);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+    }
+    .pill.good { color: var(--good); border-color: rgba(49,208,127,0.35); background: rgba(49,208,127,0.10); }
+    .pill.bad { color: var(--bad); border-color: rgba(255,92,122,0.35); background: rgba(255,92,122,0.10); }
+    .pill.perfect { color: var(--accent); border-color: rgba(122,162,255,0.55); background: rgba(122,162,255,0.18); }
+    .pill.discuss { color: var(--warn); border-color: rgba(255,209,102,0.55); background: rgba(255,209,102,0.12); }
+
+    .small{font-size:12px;color:var(--muted)}
+    .resultCard{border:1px solid var(--border);border-radius:16px;padding:14px;background:rgba(0,0,0,0.25)}
+    .resultItem{border:1px solid var(--border);border-radius:14px;padding:12px;margin-top:10px;background:rgba(255,255,255,0.04)}
+    .ansline{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+    .subline{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
+    .hidden{display:none}
+
+    .blurred{
+      filter: blur(7px);
+      opacity: 0.75;
+      transform: translateZ(0);
+    }
+
+    .legend {
+      margin-top: 10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+    .legendTitle {
+      font-weight:900;
+      margin-right:4px;
+      color: var(--text);
+    }
+
+    .infoBox{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(127,214,255,0.35);
+      background: rgba(127,214,255,0.08);
+      color: var(--text);
+      line-height: 1.35;
+      font-size: 13px;
+    }
+    .infoBox strong{color: rgba(127,214,255,0.95)}
+
+    details.section {
+      border: 1px solid rgba(122,162,255,0.28);
+      border-radius: 16px;
+      background: rgba(122,162,255,0.06);
+      margin-top: 12px;
+      overflow: hidden;
+    }
+    details.section[open] {
+      background: rgba(122,162,255,0.08);
+      border-color: rgba(122,162,255,0.40);
+    }
+    summary.sectionSummary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      user-select:none;
+    }
+    summary.sectionSummary::-webkit-details-marker { display:none; }
+    .secLeft {
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width: 0;
+    }
+    .secTitle {
+      font-weight: 950;
+      font-size: 15px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .secMeta {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .chev {
+      font-size: 16px;
+      opacity: 0.85;
+      transition: transform 120ms ease;
+    }
+    details.section[open] .chev { transform: rotate(90deg); }
+    .secInner { padding: 0 12px 12px 12px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Compatibility Quiz</h1>
+      <div class="meta">
+        Two-person match quiz • Save answers as files • Load both files to compare
+        <div class="legend">
+          <span class="legendTitle">Legend:</span>
+          <span class="pill perfect">⭐ Perfect Match</span>
+          <span class="pill good">✅ Match</span>
+          <span class="pill bad">❗ Mismatch</span>
+          <span class="pill discuss">💬 Open to Discussion</span>
+        </div>
+      </div>
+    </div>
+    <div class="meta" id="statusText"></div>
+  </header>
+
+  <div class="split">
+    <div class="card">
+      <div class="qhead">
+        <div style="font-weight:900">Step 1: Take the quiz</div>
+        <div class="pill" id="progressPill">0/138 answered</div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <input id="personName" type="text" placeholder="Your name"/>
+        <button id="saveBtn" class="primary" type="button">Save my answers</button>
+        <button id="clearBtn" class="bad" type="button">Clear</button>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button id="expandAll" type="button">Expand all</button>
+        <button id="collapseAll" type="button">Collapse all</button>
+      </div>
+
+      <div class="infoBox">
+        <strong>Open to Discussion</strong> is <strong>not an answer</strong>.
+        It’s a way to flag that you’re open to discussing the answer you chose further.
+        <br/>
+        Results rule: mismatches will show, but answers are <strong>blurred</strong> unless <strong>both</strong> people mark Open to Discussion
+        (or you tap Reveal).
+      </div>
+
+      <div id="quizMount" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <div class="qhead">
+        <div style="font-weight:900">Step 2: Compare</div>
+        <div class="pill" id="comparePill">Waiting for files</div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button id="loadA" type="button">Load Person A</button>
+        <button id="loadB" type="button">Load Person B</button>
+        <button id="runCompare" class="primary" type="button">Compare</button>
+      </div>
+
+      <div class="small" style="margin-top:8px">
+        Matches always show. Mismatches always show, but are blurred unless both marked Open to Discussion (or you reveal).
+      </div>
+
+      <div id="results" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<input id="fileA" type="file" accept="application/json" class="hidden"/>
+<input id="fileB" type="file" accept="application/json" class="hidden"/>
+
+<script>
+const CONFIG = {"title": "Compatibility Quiz", "shared_choices": ["EW!", "No", "Maybe", "Yes", "Oh Yes!"], "sections": [{"title": "Basics", "questions": [{"id": "q1", "prompt": "Give a sensual massage to them?"}, {"id": "q2", "prompt": "Get a sensual massage from them?"}, {"id": "q3", "prompt": "Listen to music while having sex?"}, {"id": "q4", "prompt": "Talk dirty to them during sex?"}, {"id": "q5", "prompt": "Have them talk dirty to you during sex?"}, {"id": "q6", "prompt": "Be louder and more vocal during sex?"}, {"id": "q7", "prompt": "Have them be louder during sex?"}, {"id": "q8", "prompt": "Have sex without using protection?"}, {"id": "q9", "prompt": "Pull out?"}, {"id": "q10", "prompt": "Cum inside?"}, {"id": "q11", "prompt": "Cum on face?"}, {"id": "q12", "prompt": "Cum on chest and stomach?"}, {"id": "q13", "prompt": "Titty fuck?"}, {"id": "q14", "prompt": "Receive oral sex?"}, {"id": "q15", "prompt": "Give them oral sex?"}, {"id": "q16", "prompt": "Have them swallow your cum?"}]}, {"title": "Role Play", "questions": [{"id": "q17", "prompt": "Role-play or wear costumes during sex?"}, {"id": "q18", "prompt": "Engage in consensual non-consent?"}, {"id": "q19", "prompt": "Pretend you or them are much older?"}, {"id": "q20", "prompt": "Pretend you or your partner are much younger?"}, {"id": "q21", "prompt": "Have them cross dress?"}, {"id": "q22", "prompt": "Cross dress?"}, {"id": "q23", "prompt": "Teacher role-play?"}, {"id": "q24", "prompt": "Nurse role-play?"}, {"id": "q25", "prompt": "Boss role-play?"}, {"id": "q26", "prompt": "Repairman role-play?"}, {"id": "q27", "prompt": "Maid role-play?"}, {"id": "q28", "prompt": "Pretend they are a complete stranger?"}, {"id": "q29", "prompt": "Fantasy RPG role-play?"}, {"id": "q30", "prompt": "Sci-fi or space alien role-play?"}, {"id": "q31", "prompt": "Harry Potter role-play?"}, {"id": "q32", "prompt": "Star Wars role-play?"}, {"id": "q33", "prompt": "Lord of the Rings role-play?"}, {"id": "q34", "prompt": "Game of Thrones role-play?"}]}, {"title": "Butt Stuff", "questions": [{"id": "q35", "prompt": "Have anal sex?"}, {"id": "q36", "prompt": "Finger them anally?"}, {"id": "q37", "prompt": "Be anally fingered by them?"}, {"id": "q38", "prompt": "Give them analingus?"}, {"id": "q39", "prompt": "Have them give you analingus?"}, {"id": "q40", "prompt": "Pegging?"}, {"id": "q41", "prompt": "Explore anally stimulating them?"}, {"id": "q42", "prompt": "Explore having them anally stimulate you?"}]}, {"title": "Positions", "questions": [{"id": "q43", "prompt": "69?"}, {"id": "q44", "prompt": "Try different sexual positions?"}, {"id": "q45", "prompt": "Do it doggy-style?"}, {"id": "q46", "prompt": "Do cowgirl?"}, {"id": "q47", "prompt": "Do reverse cowgirl?"}, {"id": "q48", "prompt": "Do it with legs on shoulders?"}, {"id": "q49", "prompt": "Have them on top more?"}, {"id": "q50", "prompt": "Be on top more?"}, {"id": "q51", "prompt": "Have sex standing up?"}, {"id": "q52", "prompt": "Install a sex position of the day app?"}, {"id": "q53", "prompt": "Get a copy of the Kama Sutra?"}, {"id": "q54", "prompt": "Make a sexual to-do list?"}]}, {"title": "BDSM", "questions": [{"id": "q55", "prompt": "Be rougher towards them in the bedroom?"}, {"id": "q56", "prompt": "Have them be rougher towards you in the bedroom?"}, {"id": "q57", "prompt": "Pull their hair during sex?"}, {"id": "q58", "prompt": "Have your hair pulled during sex?"}, {"id": "q59", "prompt": "Bite them during sex?"}, {"id": "q60", "prompt": "Be bitten during sex?"}, {"id": "q61", "prompt": "Choke them during sex?"}, {"id": "q62", "prompt": "Be choked during sex?"}, {"id": "q63", "prompt": "Scratch them during sex?"}, {"id": "q64", "prompt": "Be scratched during sex?"}, {"id": "q65", "prompt": "Tie up or handcuff them during sex?"}, {"id": "q66", "prompt": "Be tied up or handcuffed during sex?"}, {"id": "q67", "prompt": "Explore your submissive side with them?"}, {"id": "q68", "prompt": "Have them explore their submissive side with you?"}, {"id": "q69", "prompt": "Have your mouth covered or gagged during sex?"}, {"id": "q70", "prompt": "Have their mouth covered or gagged during sex?"}, {"id": "q71", "prompt": "Force them to orgasm?"}, {"id": "q72", "prompt": "Be forced to orgasm by them?"}, {"id": "q73", "prompt": "Edge them?"}, {"id": "q74", "prompt": "Have them edge you?"}, {"id": "q75", "prompt": "Be blindfolded during sex?"}, {"id": "q76", "prompt": "Blindfold them during sex?"}, {"id": "q77", "prompt": "Use handcuffs during sex?"}, {"id": "q78", "prompt": "Participate in impact play (whip, paddle, etc.)?"}, {"id": "q79", "prompt": "Spank or slap them during sex?"}, {"id": "q80", "prompt": "Have them spank or slap you during sex?"}, {"id": "q81", "prompt": "Have them wear leather or latex?"}, {"id": "q82", "prompt": "Wear leather or latex during sex?"}, {"id": "q83", "prompt": "Pee on them?"}, {"id": "q84", "prompt": "Be peed on by them?"}, {"id": "q85", "prompt": "Explore your dominant side with them?"}, {"id": "q86", "prompt": "Have them explore their dominant side with you?"}]}, {"title": "Frequency & Location", "questions": [{"id": "q87", "prompt": "Take nude or semi-nude pictures of them?"}, {"id": "q88", "prompt": "Have them take nude or semi-nude pictures of you?"}, {"id": "q89", "prompt": "Make a private sex tape together?"}, {"id": "q90", "prompt": "Watch porn together?"}, {"id": "q91", "prompt": "Use porn to show each other things you like?"}, {"id": "q92", "prompt": "Have shower sex?"}, {"id": "q93", "prompt": "Have sex when they are menstruating?"}, {"id": "q94", "prompt": "Have sex more often?"}, {"id": "q95", "prompt": "Schedule sex?"}, {"id": "q96", "prompt": "Have sex multiple times in a row?"}, {"id": "q97", "prompt": "Have morning sex?"}, {"id": "q98", "prompt": "Have sex outside?"}, {"id": "q99", "prompt": "Have sex in a public place?"}, {"id": "q100", "prompt": "Have sex in a car?"}, {"id": "q101", "prompt": "Road head?"}, {"id": "q102", "prompt": "Do sexual things while driving?"}, {"id": "q103", "prompt": "Have sex in a library?"}, {"id": "q104", "prompt": "Post your private photos or videos online?"}, {"id": "q105", "prompt": "Go to a strip club together?"}, {"id": "q106", "prompt": "Have sex around the house?"}, {"id": "q107", "prompt": "Have phone sex?"}, {"id": "q108", "prompt": "Have them send you nude photos?"}, {"id": "q109", "prompt": "Send them nude photos?"}]}, {"title": "Toys & Devices", "questions": [{"id": "q110", "prompt": "Use a butt plug during sex?"}, {"id": "q111", "prompt": "Have them use a butt plug during sex?"}, {"id": "q112", "prompt": "Use long-distance sex toys?"}, {"id": "q113", "prompt": "Shop at a sex store or webstore together?"}, {"id": "q114", "prompt": "Use toys during sex?"}, {"id": "q115", "prompt": "Use a cock ring during sex?"}, {"id": "q116", "prompt": "Use a strap-on during sex?"}, {"id": "q117", "prompt": "Use a dildo during sex?"}, {"id": "q118", "prompt": "Use nipple clamps?"}, {"id": "q119", "prompt": "Use a vibrator during sex?"}]}, {"title": "Body Preferences", "questions": [{"id": "q120", "prompt": "Body hair?"}, {"id": "q121", "prompt": "Hairy armpits?"}, {"id": "q122", "prompt": "Shaved?"}, {"id": "q123", "prompt": "Nipple piercings?"}, {"id": "q124", "prompt": "Body piercings?"}, {"id": "q125", "prompt": "Face piercings?"}, {"id": "q126", "prompt": "Face tattoos?"}, {"id": "q127", "prompt": "Body tattoos?"}, {"id": "q128", "prompt": "Feet?"}]}, {"title": "Swingers", "questions": [{"id": "q129", "prompt": "Watch them be penetrated by another?"}, {"id": "q130", "prompt": "Be penetrated by another while they watch?"}, {"id": "q131", "prompt": "Watch them penetrate another?"}, {"id": "q132", "prompt": "Penetrate another while they watch?"}, {"id": "q133", "prompt": "Have a threesome?"}, {"id": "q134", "prompt": "Have group sex with more than three people?"}, {"id": "q135", "prompt": "Have a sexual hall pass sometimes?"}, {"id": "q136", "prompt": "Go to a nudist resort together?"}, {"id": "q137", "prompt": "Watch them receive oral sex from another?"}, {"id": "q138", "prompt": "Receive oral sex while they watch?"}]}]};
+
+const POSITIVE = new Set(["Maybe", "Yes", "Oh Yes!"]);
+const NEGATIVE = new Set(["EW!", "No"]);
+
+const state = {
+  myAnswers: {},
+  myDiscuss: {},
+  personA: null,
+  personB: null,
+};
+
+// prevent repeated auto-scroll per section completion
+const sectionCompletion = {}; // secIndex -> boolean
+
+function getAllQuestionsWithSections() {
+  if (Array.isArray(CONFIG.sections)) {
+    return CONFIG.sections.map(s => ({
+      title: s.title || "Section",
+      questions: Array.isArray(s.questions) ? s.questions : []
+    }));
+  }
+  return [{ title: "Questions", questions: Array.isArray(CONFIG.questions) ? CONFIG.questions : [] }];
+}
+
+function getAllQuestionsFlat() {
+  const out = [];
+  for (const sec of getAllQuestionsWithSections()) {
+    for (const q of sec.questions) out.push(q);
+  }
+  return out;
+}
+
+function setStatus(msg) {
+  document.getElementById("statusText").textContent = msg || "";
+}
+
+function el(tag, attrs={}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v;
+    else if (k === "text") n.textContent = v;
+    else n.setAttribute(k, v);
+  }
+  for (const kid of kids) {
+    if (kid == null) continue;
+    if (typeof kid === "string") n.appendChild(document.createTextNode(kid));
+    else n.appendChild(kid);
+  }
+  return n;
+}
+
+function discussLabel(isOn) {
+  return isOn ? "Open to Discussion ✓" : "Open to Discussion";
+}
+
+function isAnswered(qid) {
+  return Number.isInteger(state.myAnswers[qid]);
+}
+
+function countAnsweredInSection(sec) {
+  let answered = 0;
+  for (const q of sec.questions) if (isAnswered(q.id)) answered++;
+  return answered;
+}
+
+function updateProgress() {
+  const all = getAllQuestionsFlat();
+  const answered = all.filter(q => isAnswered(q.id)).length;
+  document.getElementById("progressPill").textContent = `${answered}/138 answered`;
+
+  const sections = getAllQuestionsWithSections();
+
+  document.querySelectorAll("[data-sec-index]").forEach((node) => {
+    const idx = Number(node.getAttribute("data-sec-index"));
+    const sec = sections[idx];
+    if (!sec) return;
+
+    const a = countAnsweredInSection(sec);
+    node.textContent = `${a}/${sec.questions.length} answered`;
+
+    const details = document.getElementById(`sec_${idx}`);
+    if (!details) return;
+
+    const isCompleteNow = (sec.questions.length > 0 && a >= sec.questions.length);
+    const wasCompleteBefore = !!sectionCompletion[idx];
+    sectionCompletion[idx] = isCompleteNow;
+
+    // only on transition incomplete -> complete
+    if (isCompleteNow && !wasCompleteBefore) {
+      details.open = false;
+
+      const nextDetails = document.getElementById(`sec_${idx + 1}`);
+      const nextSummary = nextDetails ? nextDetails.querySelector("summary.sectionSummary") : null;
+
+      if (nextDetails && nextSummary) {
+        nextDetails.open = true;
+        setTimeout(() => {
+          nextSummary.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 120);
+      }
+    }
+  });
+}
+
+function renderQuiz() {
+  const mount = document.getElementById("quizMount");
+  mount.innerHTML = "";
+
+  const sections = getAllQuestionsWithSections();
+  let globalIndex = 0;
+
+  sections.forEach((sec, secIndex) => {
+    const details = el("details", { class: "section", open: "open", id: `sec_${secIndex}` });
+    const summary = el("summary", { class: "sectionSummary" });
+
+    const left = el("div", { class:"secLeft" },
+      el("div", { class:"secTitle", text: sec.title }),
+      el("div", { class:"secMeta" },
+        el("span", { class:"pill", text: `${sec.questions.length} questions` }),
+        el("span", { class:"pill", "data-sec-index": String(secIndex), text: `0/${sec.questions.length} answered` })
+      )
+    );
+    const right = el("div", { class:"chev", text: "›" });
+
+    summary.appendChild(left);
+    summary.appendChild(right);
+    details.appendChild(summary);
+
+    const inner = el("div", { class:"secInner" });
+
+    sec.questions.forEach((q) => {
+      globalIndex += 1;
+
+      const card = el("div", {class:"resultItem"});
+      const head = el("div", {class:"qhead"},
+        el("div", {class:"qnum", text:`Q${globalIndex}`})
+      );
+
+      const prompt = el("div", {class:"prompt", text:q.prompt});
+      const choicesWrap = el("div", {class:"choices"});
+
+      CONFIG.shared_choices.forEach((choiceText, idx) => {
+        const inputId = `mine_${q.id}_${idx}`;
+        const radio = el("input", { type:"radio", name:`mine_${q.id}`, id:inputId, value:String(idx) });
+        radio.checked = (state.myAnswers[q.id] === idx);
+
+        const label = el("label", {
+          class: "choice" + ((state.myAnswers[q.id] === idx) ? " selected" : ""),
+          for: inputId
+        }, radio, el("span", {text:choiceText}));
+
+        radio.addEventListener("change", () => {
+          state.myAnswers[q.id] = idx;
+          choicesWrap.querySelectorAll(".choice").forEach(c => c.classList.remove("selected"));
+          label.classList.add("selected");
+          updateProgress();
+        });
+
+        label.addEventListener("click", (e) => {
+          if (e.target.tagName.toLowerCase() !== "input") {
+            radio.checked = true;
+            radio.dispatchEvent(new Event("change"));
+          }
+        });
+
+        choicesWrap.appendChild(label);
+      });
+
+      const discussOn = !!state.myDiscuss[q.id];
+      const discussBtn = el("button", {
+        type:"button",
+        class: "tiny" + (discussOn ? " discussOn" : "")
+      }, discussLabel(discussOn));
+
+      discussBtn.addEventListener("click", () => {
+        state.myDiscuss[q.id] = !state.myDiscuss[q.id];
+        const nowOn = !!state.myDiscuss[q.id];
+        discussBtn.className = "tiny" + (nowOn ? " discussOn" : "");
+        discussBtn.textContent = discussLabel(nowOn);
+      });
+
+      const discussRow = el("div", {class:"subline"},
+        discussBtn,
+        discussOn ? el("span", {class:"pill discuss", text:"💬 Marked"}) : null
+      );
+
+      card.appendChild(head);
+      card.appendChild(prompt);
+      card.appendChild(choicesWrap);
+      card.appendChild(discussRow);
+      inner.appendChild(card);
+    });
+
+    details.appendChild(inner);
+    mount.appendChild(details);
+  });
+
+  // reset completion memory on rerender
+  for (const k in sectionCompletion) delete sectionCompletion[k];
+
+  updateProgress();
+}
+
+function expandAllSections() {
+  document.querySelectorAll("details.section").forEach(d => d.open = true);
+}
+function collapseAllSections() {
+  document.querySelectorAll("details.section").forEach(d => d.open = false);
+}
+
+function downloadJson(filename, obj) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 500);
+}
+
+function saveMyAnswers() {
+  const name = (document.getElementById("personName").value || "").trim() || "Person";
+  const payload = {
+    title: CONFIG.title,
+    name,
+    created_at: new Date().toISOString(),
+    answers: state.myAnswers,
+    discuss: state.myDiscuss
+  };
+  downloadJson(`${name.toLowerCase().replace(/\s+/g,'_')}_answers.json`, payload);
+  setStatus(`Saved answers for ${name}`);
+}
+
+async function readJsonFile(file) {
+  const text = await file.text();
+  return JSON.parse(text);
+}
+
+function validateAnswerFile(obj) {
+  if (!obj || typeof obj !== "object") throw new Error("Invalid JSON");
+  if (!obj.answers || typeof obj.answers !== "object") throw new Error("Missing answers");
+  return {
+    name: (obj.name || "Person").toString(),
+    answers: obj.answers,
+    discuss: (obj.discuss && typeof obj.discuss === "object") ? obj.discuss : {}
+  };
+}
+
+function classify(aVal, bVal, aText, bText) {
+  const aAnswered = Number.isInteger(aVal);
+  const bAnswered = Number.isInteger(bVal);
+  if (!aAnswered || !bAnswered) return "mismatch";
+  if (NEGATIVE.has(aText) || NEGATIVE.has(bText)) return "mismatch";
+  if (POSITIVE.has(aText) && POSITIVE.has(bText)) {
+    return (aVal === bVal) ? "perfect" : "match";
+  }
+  return "mismatch";
+}
+
+function compareAnswers(a, b) {
+  const flat = getAllQuestionsFlat();
+
+  return flat.map((q) => {
+    const aVal = a.answers[q.id];
+    const bVal = b.answers[q.id];
+
+    const aText = Number.isInteger(aVal) ? CONFIG.shared_choices[aVal] : "(no answer)";
+    const bText = Number.isInteger(bVal) ? CONFIG.shared_choices[bVal] : "(no answer)";
+
+    const aDiscuss = !!(a.discuss && a.discuss[q.id]);
+    const bDiscuss = !!(b.discuss && b.discuss[q.id]);
+    const bothDiscuss = aDiscuss && bDiscuss;
+
+    const status = classify(aVal, bVal, aText, bText);
+    const blurAnswers = (status === "mismatch") && !bothDiscuss;
+
+    return { qid:q.id, prompt:q.prompt, aText, bText, aDiscuss, bDiscuss, bothDiscuss, status, blurAnswers };
+  });
+}
+
+function renderResults() {
+  const results = document.getElementById("results");
+  results.innerHTML = "";
+
+  if (!state.personA || !state.personB) {
+    document.getElementById("comparePill").textContent = "Waiting for files";
+    return;
+  }
+
+  const items = compareAnswers(state.personA, state.personB);
+
+  const perfectCount = items.filter(x => x.status === "perfect").length;
+  const matchCount = items.filter(x => x.status === "match").length;
+  const mismatchCount = items.filter(x => x.status === "mismatch").length;
+
+  document.getElementById("comparePill").textContent =
+    `${perfectCount} perfect • ${matchCount} match • ${mismatchCount} mismatch`;
+
+  results.appendChild(el("div", { class:"resultCard" },
+    el("div", { style:"font-weight:900; font-size:16px" },
+      `Results for ${state.personA.name} + ${state.personB.name}`
+    ),
+    el("div", { class:"meta" },
+      "Matches always show. Mismatches are blurred unless both marked Open to Discussion (or you reveal)."
+    )
+  ));
+
+  items.forEach((it, idx) => {
+    const isPerfect = it.status === "perfect";
+    const isMatch = it.status === "match";
+
+    const statusPillClass = isPerfect ? "pill perfect" : (isMatch ? "pill good" : "pill bad");
+    const statusPillText = isPerfect ? "⭐ PERFECT MATCH" : (isMatch ? "✅ MATCH" : "❗ MISMATCH");
+    const answerPillClass = isPerfect ? "pill perfect" : (isMatch ? "pill good" : "pill bad");
+
+    const card = el("div", { class:"resultItem" });
+
+    card.appendChild(el("div", { class:"qhead" },
+      el("div", { class:"qnum", text:`#${idx + 1}` }),
+      el("div", { class: statusPillClass, text: statusPillText })
+    ));
+
+    card.appendChild(el("div", { class:"prompt", text: it.prompt }));
+
+    const aAns = el("div", { class: answerPillClass }, `${state.personA.name}: ${it.aText}`);
+    const bAns = el("div", { class: answerPillClass }, `${state.personB.name}: ${it.bText}`);
+
+    if (it.blurAnswers) { aAns.classList.add("blurred"); bAns.classList.add("blurred"); }
+
+    card.appendChild(el("div", { class:"ansline" }, aAns, bAns));
+
+    const sub = el("div", { class:"subline" });
+
+    if (it.blurAnswers) {
+      const revealBtn = el("button", { type:"button", class:"tiny" }, "Reveal answers");
+      revealBtn.addEventListener("click", () => {
+        const blurred = aAns.classList.contains("blurred");
+        if (blurred) {
+          aAns.classList.remove("blurred"); bAns.classList.remove("blurred");
+          revealBtn.textContent = "Hide answers";
+        } else {
+          aAns.classList.add("blurred"); bAns.classList.add("blurred");
+          revealBtn.textContent = "Reveal answers";
+        }
+      });
+      sub.appendChild(revealBtn);
+      sub.appendChild(el("span", { class:"pill", text:"Blurred by default" }));
+    }
+
+    if (it.aDiscuss) sub.appendChild(el("span", { class:"pill discuss", text:`💬 ${state.personA.name} open` }));
+    if (it.bDiscuss) sub.appendChild(el("span", { class:"pill discuss", text:`💬 ${state.personB.name} open` }));
+    if (it.bothDiscuss && it.status === "mismatch") sub.appendChild(el("span", { class:"pill discuss", text:"Both open to discuss" }));
+
+    card.appendChild(sub);
+    results.appendChild(card);
+  });
+}
+
+document.getElementById("saveBtn").addEventListener("click", saveMyAnswers);
+document.getElementById("clearBtn").addEventListener("click", () => {
+  state.myAnswers = {};
+  state.myDiscuss = {};
+  renderQuiz();
+  setStatus("Cleared answers + discussion flags");
+});
+
+document.getElementById("expandAll").addEventListener("click", expandAllSections);
+document.getElementById("collapseAll").addEventListener("click", collapseAllSections);
+
+document.getElementById("loadA").addEventListener("click", () => document.getElementById("fileA").click());
+document.getElementById("loadB").addEventListener("click", () => document.getElementById("fileB").click());
+
+document.getElementById("fileA").addEventListener("change", async (e) => {
+  const f = e.target.files?.[0];
+  if (!f) return;
+  try { state.personA = validateAnswerFile(await readJsonFile(f)); setStatus(`Loaded A: ${state.personA.name}`); renderResults(); }
+  catch (err) { alert("Could not load Person A file: " + err); }
+});
+
+document.getElementById("fileB").addEventListener("change", async (e) => {
+  const f = e.target.files?.[0];
+  if (!f) return;
+  try { state.personB = validateAnswerFile(await readJsonFile(f)); setStatus(`Loaded B: ${state.personB.name}`); renderResults(); }
+  catch (err) { alert("Could not load Person B file: " + err); }
+});
+
+document.getElementById("runCompare").addEventListener("click", renderResults);
+
+renderQuiz();
+</script>
+</body>
+</html>
