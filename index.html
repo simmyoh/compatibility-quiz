@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Compatibility Quiz</title>
+  <title>Bedroom Compatibility Quiz</title>
   <style>
     :root {
       --bg:#0b1020;
@@ -15,6 +15,13 @@
       --bad:#ff5c7a;
       --warn:#ffd166;
       --info:#7fd6ff;
+
+      /* NEW */
+      --orange:#ffb46a;
+      --purple:#c9a7ff;
+
+      /* NEW: Needs-a-talk -> blue */
+      --blue:#7fb3ff;
     }
     *{box-sizing:border-box}
     body{
@@ -48,7 +55,12 @@
     button.primary{background:rgba(122,162,255,0.24); border-color:rgba(122,162,255,0.45)}
     button.bad{background:rgba(255,92,122,0.12)}
     button.tiny{padding:8px 10px; font-weight:800; font-size:12px; border-radius:10px}
-    button.discussOn{border-color: rgba(255, 209, 102, 0.7); background: rgba(255, 209, 102, 0.14);}
+
+    /* UPDATED: Open to Discussion button highlight -> light purple */
+    button.discussOn{
+      border-color: rgba(201,167,255,0.70);
+      background: rgba(201,167,255,0.14);
+    }
 
     .card{
       border:1px solid var(--border);border-radius:16px;padding:14px;
@@ -89,7 +101,18 @@
     .pill.good { color: var(--good); border-color: rgba(49,208,127,0.35); background: rgba(49,208,127,0.10); }
     .pill.bad { color: var(--bad); border-color: rgba(255,92,122,0.35); background: rgba(255,92,122,0.10); }
     .pill.perfect { color: var(--accent); border-color: rgba(122,162,255,0.55); background: rgba(122,162,255,0.18); }
-    .pill.discuss { color: var(--warn); border-color: rgba(255,209,102,0.55); background: rgba(255,209,102,0.12); }
+
+    /* UPDATED: Open to Discussion pill -> light purple */
+    .pill.discuss { color: var(--purple); border-color: rgba(201,167,255,0.55); background: rgba(201,167,255,0.12); }
+
+    /* NEW: Aligned/Neutral uses the old yellow background */
+    .pill.neutral { color: var(--warn); border-color: rgba(255,209,102,0.55); background: rgba(255,209,102,0.12); }
+
+    /* NEW: Asymmetric -> light orange */
+    .pill.orange { color: var(--orange); border-color: rgba(255,180,106,0.60); background: rgba(255,180,106,0.14); }
+
+    /* NEW: Needs a Talk -> blue */
+    .pill.needsTalk { color: var(--blue); border-color: rgba(127,179,255,0.55); background: rgba(127,179,255,0.14); }
 
     .small{font-size:12px;color:var(--muted)}
     .resultCard{border:1px solid var(--border);border-radius:16px;padding:14px;background:rgba(0,0,0,0.25)}
@@ -184,16 +207,9 @@
 <div class="wrap">
   <header>
     <div>
-      <h1>Compatibility Quiz</h1>
+      <h1>Bedroom Compatibility Quiz</h1>
       <div class="meta">
-        Two-person match quiz • Save answers as files • Load both files to compare
-        <div class="legend">
-          <span class="legendTitle">Legend:</span>
-          <span class="pill perfect">⭐ Perfect Match</span>
-          <span class="pill good">✅ Match</span>
-          <span class="pill bad">❗ Mismatch</span>
-          <span class="pill discuss">💬 Open to Discussion</span>
-        </div>
+        Two-person quiz • Save answers as files • Load both files to compare (answers hidden by default)
       </div>
     </div>
     <div class="meta" id="statusText"></div>
@@ -220,9 +236,18 @@
       <div class="infoBox">
         <strong>Open to Discussion</strong> is <strong>not an answer</strong>.
         It’s a way to flag that you’re open to discussing the answer you chose further.
-        <br/>
-        Results rule: mismatches will show, but answers are <strong>blurred</strong> unless <strong>both</strong> people mark Open to Discussion
-        (or you tap Reveal).
+      </div>
+
+      <div class="infoBox">
+        <strong>Answer meanings</strong>
+        <ul style="margin:8px 0 0 18px; padding:0; line-height:1.45">
+          <li><strong>EW!</strong> — This is a turn-off for me.</li>
+          <li><strong>No</strong> — I’m not interested.</li>
+          <li><strong>IDK</strong> — I don’t have enough information or experience to know.</li>
+          <li><strong>Ambivalent</strong> — It doesn’t do much for me, but I’m open if it adds to my partner’s experience.</li>
+          <li><strong>Yes</strong> — I’m interested.</li>
+          <li><strong>Oh Yes!</strong> — This is a turn-on for me.</li>
+        </ul>
       </div>
 
       <div id="quizMount" style="margin-top:14px"></div>
@@ -240,8 +265,15 @@
         <button id="runCompare" class="primary" type="button">Compare</button>
       </div>
 
+      <div class="row" style="margin-top:10px">
+        <button id="revealAll" type="button">Reveal all answers</button>
+        <button id="hideAll" type="button">Hide all answers</button>
+      </div>
+
       <div class="small" style="margin-top:8px">
-        Matches always show. Mismatches always show, but are blurred unless both marked Open to Discussion (or you reveal).
+        Answers are hidden by default on the results page — reveal only what you want to discuss.
+        <br/>
+        Boundaries always override curiosity. Discussion is optional, never expected.
       </div>
 
       <div id="results" style="margin-top:12px"></div>
@@ -253,10 +285,7 @@
 <input id="fileB" type="file" accept="application/json" class="hidden"/>
 
 <script>
-const CONFIG = {"title": "Compatibility Quiz", "shared_choices": ["EW!", "No", "Maybe", "Yes", "Oh Yes!"], "sections": [{"title": "Basics", "questions": [{"id": "q1", "prompt": "Give a sensual massage to them?"}, {"id": "q2", "prompt": "Get a sensual massage from them?"}, {"id": "q3", "prompt": "Listen to music while having sex?"}, {"id": "q4", "prompt": "Talk dirty to them during sex?"}, {"id": "q5", "prompt": "Have them talk dirty to you during sex?"}, {"id": "q6", "prompt": "Be louder and more vocal during sex?"}, {"id": "q7", "prompt": "Have them be louder during sex?"}, {"id": "q8", "prompt": "Have sex without using protection?"}, {"id": "q9", "prompt": "Pull out?"}, {"id": "q10", "prompt": "Cum inside?"}, {"id": "q11", "prompt": "Cum on face?"}, {"id": "q12", "prompt": "Cum on chest and stomach?"}, {"id": "q13", "prompt": "Titty fuck?"}, {"id": "q14", "prompt": "Receive oral sex?"}, {"id": "q15", "prompt": "Give them oral sex?"}, {"id": "q16", "prompt": "Have them swallow your cum?"}]}, {"title": "Role Play", "questions": [{"id": "q17", "prompt": "Role-play or wear costumes during sex?"}, {"id": "q18", "prompt": "Engage in consensual non-consent?"}, {"id": "q19", "prompt": "Pretend you or them are much older?"}, {"id": "q20", "prompt": "Pretend you or your partner are much younger?"}, {"id": "q21", "prompt": "Have them cross dress?"}, {"id": "q22", "prompt": "Cross dress?"}, {"id": "q23", "prompt": "Teacher role-play?"}, {"id": "q24", "prompt": "Nurse role-play?"}, {"id": "q25", "prompt": "Boss role-play?"}, {"id": "q26", "prompt": "Repairman role-play?"}, {"id": "q27", "prompt": "Maid role-play?"}, {"id": "q28", "prompt": "Pretend they are a complete stranger?"}, {"id": "q29", "prompt": "Fantasy RPG role-play?"}, {"id": "q30", "prompt": "Sci-fi or space alien role-play?"}, {"id": "q31", "prompt": "Harry Potter role-play?"}, {"id": "q32", "prompt": "Star Wars role-play?"}, {"id": "q33", "prompt": "Lord of the Rings role-play?"}, {"id": "q34", "prompt": "Game of Thrones role-play?"}]}, {"title": "Butt Stuff", "questions": [{"id": "q35", "prompt": "Have anal sex?"}, {"id": "q36", "prompt": "Finger them anally?"}, {"id": "q37", "prompt": "Be anally fingered by them?"}, {"id": "q38", "prompt": "Give them analingus?"}, {"id": "q39", "prompt": "Have them give you analingus?"}, {"id": "q40", "prompt": "Pegging?"}, {"id": "q41", "prompt": "Explore anally stimulating them?"}, {"id": "q42", "prompt": "Explore having them anally stimulate you?"}]}, {"title": "Positions", "questions": [{"id": "q43", "prompt": "69?"}, {"id": "q44", "prompt": "Try different sexual positions?"}, {"id": "q45", "prompt": "Do it doggy-style?"}, {"id": "q46", "prompt": "Do cowgirl?"}, {"id": "q47", "prompt": "Do reverse cowgirl?"}, {"id": "q48", "prompt": "Do it with legs on shoulders?"}, {"id": "q49", "prompt": "Have them on top more?"}, {"id": "q50", "prompt": "Be on top more?"}, {"id": "q51", "prompt": "Have sex standing up?"}, {"id": "q52", "prompt": "Install a sex position of the day app?"}, {"id": "q53", "prompt": "Get a copy of the Kama Sutra?"}, {"id": "q54", "prompt": "Make a sexual to-do list?"}]}, {"title": "BDSM", "questions": [{"id": "q55", "prompt": "Be rougher towards them in the bedroom?"}, {"id": "q56", "prompt": "Have them be rougher towards you in the bedroom?"}, {"id": "q57", "prompt": "Pull their hair during sex?"}, {"id": "q58", "prompt": "Have your hair pulled during sex?"}, {"id": "q59", "prompt": "Bite them during sex?"}, {"id": "q60", "prompt": "Be bitten during sex?"}, {"id": "q61", "prompt": "Choke them during sex?"}, {"id": "q62", "prompt": "Be choked during sex?"}, {"id": "q63", "prompt": "Scratch them during sex?"}, {"id": "q64", "prompt": "Be scratched during sex?"}, {"id": "q65", "prompt": "Tie up or handcuff them during sex?"}, {"id": "q66", "prompt": "Be tied up or handcuffed during sex?"}, {"id": "q67", "prompt": "Explore your submissive side with them?"}, {"id": "q68", "prompt": "Have them explore their submissive side with you?"}, {"id": "q69", "prompt": "Have your mouth covered or gagged during sex?"}, {"id": "q70", "prompt": "Have their mouth covered or gagged during sex?"}, {"id": "q71", "prompt": "Force them to orgasm?"}, {"id": "q72", "prompt": "Be forced to orgasm by them?"}, {"id": "q73", "prompt": "Edge them?"}, {"id": "q74", "prompt": "Have them edge you?"}, {"id": "q75", "prompt": "Be blindfolded during sex?"}, {"id": "q76", "prompt": "Blindfold them during sex?"}, {"id": "q77", "prompt": "Use handcuffs during sex?"}, {"id": "q78", "prompt": "Participate in impact play (whip, paddle, etc.)?"}, {"id": "q79", "prompt": "Spank or slap them during sex?"}, {"id": "q80", "prompt": "Have them spank or slap you during sex?"}, {"id": "q81", "prompt": "Have them wear leather or latex?"}, {"id": "q82", "prompt": "Wear leather or latex during sex?"}, {"id": "q83", "prompt": "Pee on them?"}, {"id": "q84", "prompt": "Be peed on by them?"}, {"id": "q85", "prompt": "Explore your dominant side with them?"}, {"id": "q86", "prompt": "Have them explore their dominant side with you?"}]}, {"title": "Frequency & Location", "questions": [{"id": "q87", "prompt": "Take nude or semi-nude pictures of them?"}, {"id": "q88", "prompt": "Have them take nude or semi-nude pictures of you?"}, {"id": "q89", "prompt": "Make a private sex tape together?"}, {"id": "q90", "prompt": "Watch porn together?"}, {"id": "q91", "prompt": "Use porn to show each other things you like?"}, {"id": "q92", "prompt": "Have shower sex?"}, {"id": "q93", "prompt": "Have sex when they are menstruating?"}, {"id": "q94", "prompt": "Have sex more often?"}, {"id": "q95", "prompt": "Schedule sex?"}, {"id": "q96", "prompt": "Have sex multiple times in a row?"}, {"id": "q97", "prompt": "Have morning sex?"}, {"id": "q98", "prompt": "Have sex outside?"}, {"id": "q99", "prompt": "Have sex in a public place?"}, {"id": "q100", "prompt": "Have sex in a car?"}, {"id": "q101", "prompt": "Road head?"}, {"id": "q102", "prompt": "Do sexual things while driving?"}, {"id": "q103", "prompt": "Have sex in a library?"}, {"id": "q104", "prompt": "Post your private photos or videos online?"}, {"id": "q105", "prompt": "Go to a strip club together?"}, {"id": "q106", "prompt": "Have sex around the house?"}, {"id": "q107", "prompt": "Have phone sex?"}, {"id": "q108", "prompt": "Have them send you nude photos?"}, {"id": "q109", "prompt": "Send them nude photos?"}]}, {"title": "Toys & Devices", "questions": [{"id": "q110", "prompt": "Use a butt plug during sex?"}, {"id": "q111", "prompt": "Have them use a butt plug during sex?"}, {"id": "q112", "prompt": "Use long-distance sex toys?"}, {"id": "q113", "prompt": "Shop at a sex store or webstore together?"}, {"id": "q114", "prompt": "Use toys during sex?"}, {"id": "q115", "prompt": "Use a cock ring during sex?"}, {"id": "q116", "prompt": "Use a strap-on during sex?"}, {"id": "q117", "prompt": "Use a dildo during sex?"}, {"id": "q118", "prompt": "Use nipple clamps?"}, {"id": "q119", "prompt": "Use a vibrator during sex?"}]}, {"title": "Body Preferences", "questions": [{"id": "q120", "prompt": "Body hair?"}, {"id": "q121", "prompt": "Hairy armpits?"}, {"id": "q122", "prompt": "Shaved?"}, {"id": "q123", "prompt": "Nipple piercings?"}, {"id": "q124", "prompt": "Body piercings?"}, {"id": "q125", "prompt": "Face piercings?"}, {"id": "q126", "prompt": "Face tattoos?"}, {"id": "q127", "prompt": "Body tattoos?"}, {"id": "q128", "prompt": "Feet?"}]}, {"title": "Swingers", "questions": [{"id": "q129", "prompt": "Watch them be penetrated by another?"}, {"id": "q130", "prompt": "Be penetrated by another while they watch?"}, {"id": "q131", "prompt": "Watch them penetrate another?"}, {"id": "q132", "prompt": "Penetrate another while they watch?"}, {"id": "q133", "prompt": "Have a threesome?"}, {"id": "q134", "prompt": "Have group sex with more than three people?"}, {"id": "q135", "prompt": "Have a sexual hall pass sometimes?"}, {"id": "q136", "prompt": "Go to a nudist resort together?"}, {"id": "q137", "prompt": "Watch them receive oral sex from another?"}, {"id": "q138", "prompt": "Receive oral sex while they watch?"}]}]};
-
-const POSITIVE = new Set(["Maybe", "Yes", "Oh Yes!"]);
-const NEGATIVE = new Set(["EW!", "No"]);
+const CONFIG = {"title": "Bedroom Compatibility Quiz", "shared_choices": ["EW!", "No", "IDK", "Ambivalent", "Yes", "Oh Yes!"], "sections": [{"title": "Basics", "questions": [{"id": "q1", "prompt": "Give a sensual massage to them?"}, {"id": "q2", "prompt": "Get a sensual massage from them?"}, {"id": "q3", "prompt": "Listen to music while having sex?"}, {"id": "q4", "prompt": "Talk dirty to them during sex?"}, {"id": "q5", "prompt": "Have them talk dirty to you during sex?"}, {"id": "q6", "prompt": "Be louder and more vocal during sex?"}, {"id": "q7", "prompt": "Have them be louder during sex?"}, {"id": "q8", "prompt": "Have sex without using protection?"}, {"id": "q9", "prompt": "Pull out?"}, {"id": "q10", "prompt": "Cum inside?"}, {"id": "q11", "prompt": "Cum on face?"}, {"id": "q12", "prompt": "Cum on chest and stomach?"}, {"id": "q13", "prompt": "Titty fuck?"}, {"id": "q14", "prompt": "Receive oral sex?"}, {"id": "q15", "prompt": "Give them oral sex?"}, {"id": "q16", "prompt": "Have them swallow your cum?"}]}, {"title": "Role Play", "questions": [{"id": "q17", "prompt": "Role-play or wear costumes during sex?"}, {"id": "q18", "prompt": "Engage in consensual non-consent?"}, {"id": "q19", "prompt": "Pretend you or them are much older?"}, {"id": "q20", "prompt": "Pretend you or your partner are much younger?"}, {"id": "q21", "prompt": "Have them cross dress?"}, {"id": "q22", "prompt": "Cross dress?"}, {"id": "q23", "prompt": "Teacher role-play?"}, {"id": "q24", "prompt": "Nurse role-play?"}, {"id": "q25", "prompt": "Boss role-play?"}, {"id": "q26", "prompt": "Repairman role-play?"}, {"id": "q27", "prompt": "Maid role-play?"}, {"id": "q28", "prompt": "Pretend they are a complete stranger?"}, {"id": "q29", "prompt": "Fantasy RPG role-play?"}, {"id": "q30", "prompt": "Sci-fi or space alien role-play?"}, {"id": "q31", "prompt": "Harry Potter role-play?"}, {"id": "q32", "prompt": "Star Wars role-play?"}, {"id": "q33", "prompt": "Lord of the Rings role-play?"}, {"id": "q34", "prompt": "Game of Thrones role-play?"}]}, {"title": "Butt Stuff", "questions": [{"id": "q35", "prompt": "Have anal sex?"}, {"id": "q36", "prompt": "Finger them anally?"}, {"id": "q37", "prompt": "Be anally fingered by them?"}, {"id": "q38", "prompt": "Give them analingus?"}, {"id": "q39", "prompt": "Have them give you analingus?"}, {"id": "q40", "prompt": "Pegging?"}, {"id": "q41", "prompt": "Explore anally stimulating them?"}, {"id": "q42", "prompt": "Explore having them anally stimulate you?"}]}, {"title": "Positions", "questions": [{"id": "q43", "prompt": "69?"}, {"id": "q44", "prompt": "Try different sexual positions?"}, {"id": "q45", "prompt": "Do it doggy-style?"}, {"id": "q46", "prompt": "Do cowgirl?"}, {"id": "q47", "prompt": "Do reverse cowgirl?"}, {"id": "q48", "prompt": "Do it with legs on shoulders?"}, {"id": "q49", "prompt": "Have them on top more?"}, {"id": "q50", "prompt": "Be on top more?"}, {"id": "q51", "prompt": "Have sex standing up?"}, {"id": "q52", "prompt": "Install a sex position of the day app?"}, {"id": "q53", "prompt": "Get a copy of the Kama Sutra?"}, {"id": "q54", "prompt": "Make a sexual to-do list?"}]}, {"title": "BDSM", "questions": [{"id": "q55", "prompt": "Be rougher towards them in the bedroom?"}, {"id": "q56", "prompt": "Have them be rougher towards you in the bedroom?"}, {"id": "q57", "prompt": "Pull their hair during sex?"}, {"id": "q58", "prompt": "Have your hair pulled during sex?"}, {"id": "q59", "prompt": "Bite them during sex?"}, {"id": "q60", "prompt": "Be bitten during sex?"}, {"id": "q61", "prompt": "Choke them during sex?"}, {"id": "q62", "prompt": "Be choked during sex?"}, {"id": "q63", "prompt": "Scratch them during sex?"}, {"id": "q64", "prompt": "Be scratched during sex?"}, {"id": "q65", "prompt": "Tie up or handcuff them during sex?"}, {"id": "q66", "prompt": "Be tied up or handcuffed during sex?"}, {"id": "q67", "prompt": "Explore your submissive side with them?"}, {"id": "q68", "prompt": "Have them explore their submissive side with you?"}, {"id": "q69", "prompt": "Have your mouth covered or gagged during sex?"}, {"id": "q70", "prompt": "Have their mouth covered or gagged during sex?"}, {"id": "q71", "prompt": "Force them to orgasm?"}, {"id": "q72", "prompt": "Be forced to orgasm by them?"}, {"id": "q73", "prompt": "Edge them?"}, {"id": "q74", "prompt": "Have them edge you?"}, {"id": "q75", "prompt": "Be blindfolded during sex?"}, {"id": "q76", "prompt": "Blindfold them during sex?"}, {"id": "q77", "prompt": "Use handcuffs during sex?"}, {"id": "q78", "prompt": "Participate in impact play (whip, paddle, etc.)?"}, {"id": "q79", "prompt": "Spank or slap them during sex?"}, {"id": "q80", "prompt": "Have them spank or slap you during sex?"}, {"id": "q81", "prompt": "Have them wear leather or latex?"}, {"id": "q82", "prompt": "Wear leather or latex during sex?"}, {"id": "q83", "prompt": "Pee on them?"}, {"id": "q84", "prompt": "Be peed on by them?"}, {"id": "q85", "prompt": "Explore your dominant side with them?"}, {"id": "q86", "prompt": "Have them explore their dominant side with you?"}]}, {"title": "Frequency & Location", "questions": [{"id": "q87", "prompt": "Take nude or semi-nude pictures of them?"}, {"id": "q88", "prompt": "Have them take nude or semi-nude pictures of you?"}, {"id": "q89", "prompt": "Make a private sex tape together?"}, {"id": "q90", "prompt": "Watch porn together?"}, {"id": "q91", "prompt": "Use porn to show each other things you like?"}, {"id": "q92", "prompt": "Have shower sex?"}, {"id": "q93", "prompt": "Have sex when they are menstruating?"}, {"id": "q94", "prompt": "Have sex more often?"}, {"id": "q95", "prompt": "Schedule sex?"}, {"id": "q96", "prompt": "Have sex multiple times in a row?"}, {"id": "q97", "prompt": "Have morning sex?"}, {"id": "q98", "prompt": "Have sex outside?"}, {"id": "q99", "prompt": "Have sex in a public place?"}, {"id": "q100", "prompt": "Have sex in a car?"}, {"id": "q101", "prompt": "Road head?"}, {"id": "q102", "prompt": "Do sexual things while driving?"}, {"id": "q103", "prompt": "Have sex in a library?"}, {"id": "q104", "prompt": "Post your private photos or videos online?"}, {"id": "q105", "prompt": "Go to a strip club together?"}, {"id": "q106", "prompt": "Have sex around the house?"}, {"id": "q107", "prompt": "Have phone sex?"}, {"id": "q108", "prompt": "Have them send you nude photos?"}, {"id": "q109", "prompt": "Send them nude photos?"}]}, {"title": "Toys & Devices", "questions": [{"id": "q110", "prompt": "Use a butt plug during sex?"}, {"id": "q111", "prompt": "Have them use a butt plug during sex?"}, {"id": "q112", "prompt": "Use long-distance sex toys?"}, {"id": "q113", "prompt": "Shop at a sex store or webstore together?"}, {"id": "q114", "prompt": "Use toys during sex?"}, {"id": "q115", "prompt": "Use a cock ring during sex?"}, {"id": "q116", "prompt": "Use a strap-on during sex?"}, {"id": "q117", "prompt": "Use a dildo during sex?"}, {"id": "q118", "prompt": "Use nipple clamps?"}, {"id": "q119", "prompt": "Use a vibrator during sex?"}]}, {"title": "Body Preferences", "questions": [{"id": "q120", "prompt": "Body hair?"}, {"id": "q121", "prompt": "Hairy armpits?"}, {"id": "q122", "prompt": "Shaved?"}, {"id": "q123", "prompt": "Nipple piercings?"}, {"id": "q124", "prompt": "Body piercings?"}, {"id": "q125", "prompt": "Face piercings?"}, {"id": "q126", "prompt": "Face tattoos?"}, {"id": "q127", "prompt": "Body tattoos?"}, {"id": "q128", "prompt": "Feet?"}]}, {"title": "Swingers", "questions": [{"id": "q129", "prompt": "Watch them be penetrated by another?"}, {"id": "q130", "prompt": "Be penetrated by another while they watch?"}, {"id": "q131", "prompt": "Watch them penetrate another?"}, {"id": "q132", "prompt": "Penetrate another while they watch?"}, {"id": "q133", "prompt": "Have a threesome?"}, {"id": "q134", "prompt": "Have group sex with more than three people?"}, {"id": "q135", "prompt": "Have a sexual hall pass sometimes?"}, {"id": "q136", "prompt": "Go to a nudist resort together?"}, {"id": "q137", "prompt": "Watch them receive oral sex from another?"}, {"id": "q138", "prompt": "Receive oral sex while they watch?"}]}]};
 
 const state = {
   myAnswers: {},
@@ -333,16 +362,13 @@ function updateProgress() {
     const a = countAnsweredInSection(sec);
     node.textContent = `${a}/${sec.questions.length} answered`;
 
-    const details = document.getElementById(`sec_${idx}`);
-    if (!details) return;
-
     const isCompleteNow = (sec.questions.length > 0 && a >= sec.questions.length);
     const wasCompleteBefore = !!sectionCompletion[idx];
     sectionCompletion[idx] = isCompleteNow;
 
+    // ✅ Auto-open the next section when this section becomes complete
+    // ❌ No auto-collapse anymore (manual button handles that)
     if (isCompleteNow && !wasCompleteBefore) {
-      details.open = false;
-
       const nextDetails = document.getElementById(`sec_${idx + 1}`);
       const nextSummary = nextDetails ? nextDetails.querySelector("summary.sectionSummary") : null;
 
@@ -364,7 +390,6 @@ function renderQuiz() {
   let globalIndex = 0;
 
   sections.forEach((sec, secIndex) => {
-    // CHANGE: start collapsed (no default open)
     const details = el("details", { class: "section", id: `sec_${secIndex}` });
     const summary = el("summary", { class: "sectionSummary" });
 
@@ -446,6 +471,18 @@ function renderQuiz() {
       inner.appendChild(card);
     });
 
+    // ✅ NEW: manual collapse button at the end of each section
+    const collapseRow = el("div", { class:"subline", style:"margin-top:12px" });
+    const collapseBtn = el("button", { type:"button", class:"tiny" }, "Collapse section");
+    collapseBtn.addEventListener("click", () => {
+      details.open = false;
+      setTimeout(() => {
+        summary.scrollIntoView({ behavior:"smooth", block:"start" });
+      }, 80);
+    });
+    collapseRow.appendChild(collapseBtn);
+    inner.appendChild(collapseRow);
+
     details.appendChild(inner);
     mount.appendChild(details);
   });
@@ -500,15 +537,50 @@ function validateAnswerFile(obj) {
   };
 }
 
-function classify(aVal, bVal, aText, bText) {
-  const aAnswered = Number.isInteger(aVal);
-  const bAnswered = Number.isInteger(bVal);
-  if (!aAnswered || !bAnswered) return "mismatch";
-  if (NEGATIVE.has(aText) || NEGATIVE.has(bText)) return "mismatch";
-  if (POSITIVE.has(aText) && POSITIVE.has(bText)) {
-    return (aVal === bVal) ? "perfect" : "match";
+// --- CONSENT-FORWARD RESULT LOGIC (6 choices) ---
+function levelFromChoiceText(t) {
+  if (!t) return null;
+  if (t === "EW!") return 0;
+  if (t === "No") return 1;
+  if (t === "IDK") return 2;
+  if (t === "Ambivalent") return 3;
+  if (t === "Yes") return 4;
+  if (t === "Oh Yes!") return 5;
+  return null;
+}
+
+function bucketFromLevels(aLvl, bLvl) {
+  if (aLvl == null || bLvl == null) return "unknown";
+  if (aLvl <= 1 || bLvl <= 1) return "boundary";
+
+  const aPos = aLvl >= 4;
+  const bPos = bLvl >= 4;
+  if (aPos && bPos) return "aligned_positive";
+
+  const aNeutral = (aLvl === 2 || aLvl === 3);
+  const bNeutral = (bLvl === 2 || bLvl === 3);
+  if (aNeutral && bNeutral) return "aligned_neutral";
+
+  if ((aPos && bNeutral) || (bPos && aNeutral)) return "asymmetric_safe";
+
+  return "needs_talk";
+}
+
+function bucketMeta(bucket) {
+  switch (bucket) {
+    case "aligned_positive":
+      return { pillClass: "pill good", pillText: "🟢 ALIGNED & INTERESTED", desc: "You’re on the same page and interested." };
+    case "aligned_neutral":
+      return { pillClass: "pill neutral", pillText: "🟡 NEUTRAL", desc: "Neither of you feels strongly. Low-pressure to discuss or skip." };
+    case "asymmetric_safe":
+      return { pillClass: "pill orange", pillText: "🟠 ASYMMETRIC", desc: "One of you is interested; the other is unsure/open." };
+    case "boundary":
+      return { pillClass: "pill bad", pillText: "🔴 BOUNDARY", desc: "At least one of you is not comfortable with this." };
+    case "unknown":
+      return { pillClass: "pill", pillText: "⚪ UNKNOWN / MISSING", desc: "Someone didn’t answer. Come back later if you want." };
+    default:
+      return { pillClass: "pill needsTalk", pillText: "🔵 Discuss as Necessary", desc: "Not aligned. Pause, clarify expectations, and revisit if you want." };
   }
-  return "mismatch";
 }
 
 function compareAnswers(a, b) {
@@ -516,14 +588,46 @@ function compareAnswers(a, b) {
   return flat.map((q) => {
     const aVal = a.answers[q.id];
     const bVal = b.answers[q.id];
-    const aText = Number.isInteger(aVal) ? CONFIG.shared_choices[aVal] : "(no answer)";
-    const bText = Number.isInteger(bVal) ? CONFIG.shared_choices[bVal] : "(no answer)";
+
+    const aText = Number.isInteger(aVal) ? CONFIG.shared_choices[aVal] : null;
+    const bText = Number.isInteger(bVal) ? CONFIG.shared_choices[bVal] : null;
+
+    const aLvl = levelFromChoiceText(aText);
+    const bLvl = levelFromChoiceText(bText);
+
     const aDiscuss = !!(a.discuss && a.discuss[q.id]);
     const bDiscuss = !!(b.discuss && b.discuss[q.id]);
     const bothDiscuss = aDiscuss && bDiscuss;
-    const status = classify(aVal, bVal, aText, bText);
-    const blurAnswers = (status === "mismatch") && !bothDiscuss;
-    return { qid:q.id, prompt:q.prompt, aText, bText, aDiscuss, bDiscuss, bothDiscuss, status, blurAnswers };
+
+    const bucket = bucketFromLevels(aLvl, bLvl);
+
+    return {
+      qid: q.id,
+      prompt: q.prompt,
+      aText: aText ?? "(no answer)",
+      bText: bText ?? "(no answer)",
+      aDiscuss,
+      bDiscuss,
+      bothDiscuss,
+      bucket,
+    };
+  });
+}
+
+// reveal/hide all helpers
+function setAllAnswersBlurred(blurOn) {
+  const results = document.getElementById("results");
+  if (!results) return;
+
+  const nodes = results.querySelectorAll(".ansline .pill");
+  nodes.forEach(n => {
+    if (blurOn) n.classList.add("blurred");
+    else n.classList.remove("blurred");
+  });
+
+  const revealBtns = results.querySelectorAll("button[data-reveal-btn='1']");
+  revealBtns.forEach(btn => {
+    btn.textContent = blurOn ? "Reveal answers" : "Hide answers";
   });
 }
 
@@ -537,62 +641,65 @@ function renderResults() {
   }
 
   const items = compareAnswers(state.personA, state.personB);
-  const perfectCount = items.filter(x => x.status === "perfect").length;
-  const matchCount = items.filter(x => x.status === "match").length;
-  const mismatchCount = items.filter(x => x.status === "mismatch").length;
 
+  const counts = {
+    aligned_positive: items.filter(x => x.bucket === "aligned_positive").length,
+    aligned_neutral: items.filter(x => x.bucket === "aligned_neutral").length,
+    asymmetric_safe: items.filter(x => x.bucket === "asymmetric_safe").length,
+    boundary: items.filter(x => x.bucket === "boundary").length,
+    unknown: items.filter(x => x.bucket === "unknown").length,
+    needs_talk: items.filter(x => x.bucket === "needs_talk").length,
+  };
+
+  // (Leaving compare pill as you had it, but you can add the needs_talk count if you want)
   document.getElementById("comparePill").textContent =
-    `${perfectCount} perfect • ${matchCount} match • ${mismatchCount} mismatch`;
+    `🟢 ${counts.aligned_positive} • 🟡 ${counts.aligned_neutral} • 🟠 ${counts.asymmetric_safe} • 🔴 ${counts.boundary} • ⚪ ${counts.unknown}`;
 
   results.appendChild(el("div", { class:"resultCard" },
     el("div", { style:"font-weight:900; font-size:16px" },
       `Results for ${state.personA.name} + ${state.personB.name}`
     ),
     el("div", { class:"meta" },
-      "Matches always show. Mismatches are blurred unless both marked Open to Discussion (or you reveal)."
+      "All answers are hidden by default. Reveal only what you want to discuss."
     )
   ));
 
   items.forEach((it, idx) => {
-    const isPerfect = it.status === "perfect";
-    const isMatch = it.status === "match";
-    const statusPillClass = isPerfect ? "pill perfect" : (isMatch ? "pill good" : "pill bad");
-    const statusPillText = isPerfect ? "⭐ PERFECT MATCH" : (isMatch ? "✅ MATCH" : "❗ MISMATCH");
-    const answerPillClass = isPerfect ? "pill perfect" : (isMatch ? "pill good" : "pill bad");
+    const meta = bucketMeta(it.bucket);
 
     const card = el("div", { class:"resultItem" });
     card.appendChild(el("div", { class:"qhead" },
       el("div", { class:"qnum", text:`#${idx + 1}` }),
-      el("div", { class: statusPillClass, text: statusPillText })
+      el("div", { class: meta.pillClass, text: meta.pillText })
     ));
+
     card.appendChild(el("div", { class:"prompt", text: it.prompt }));
+    card.appendChild(el("div", { class:"small", text: meta.desc }));
 
-    const aAns = el("div", { class: answerPillClass }, `${state.personA.name}: ${it.aText}`);
-    const bAns = el("div", { class: answerPillClass }, `${state.personB.name}: ${it.bText}`);
-    if (it.blurAnswers) { aAns.classList.add("blurred"); bAns.classList.add("blurred"); }
-
+    const aAns = el("div", { class: "pill" }, `${state.personA.name}: ${it.aText}`);
+    const bAns = el("div", { class: "pill" }, `${state.personB.name}: ${it.bText}`);
+    aAns.classList.add("blurred");
+    bAns.classList.add("blurred");
     card.appendChild(el("div", { class:"ansline" }, aAns, bAns));
 
     const sub = el("div", { class:"subline" });
-    if (it.blurAnswers) {
-      const revealBtn = el("button", { type:"button", class:"tiny" }, "Reveal answers");
-      revealBtn.addEventListener("click", () => {
-        const blurred = aAns.classList.contains("blurred");
-        if (blurred) {
-          aAns.classList.remove("blurred"); bAns.classList.remove("blurred");
-          revealBtn.textContent = "Hide answers";
-        } else {
-          aAns.classList.add("blurred"); bAns.classList.add("blurred");
-          revealBtn.textContent = "Reveal answers";
-        }
-      });
-      sub.appendChild(revealBtn);
-      sub.appendChild(el("span", { class:"pill", text:"Blurred by default" }));
-    }
+
+    const revealBtn = el("button", { type:"button", class:"tiny", "data-reveal-btn":"1" }, "Reveal answers");
+    revealBtn.addEventListener("click", () => {
+      const blurred = aAns.classList.contains("blurred");
+      if (blurred) {
+        aAns.classList.remove("blurred"); bAns.classList.remove("blurred");
+        revealBtn.textContent = "Hide answers";
+      } else {
+        aAns.classList.add("blurred"); bAns.classList.add("blurred");
+        revealBtn.textContent = "Reveal answers";
+      }
+    });
+    sub.appendChild(revealBtn);
 
     if (it.aDiscuss) sub.appendChild(el("span", { class:"pill discuss", text:`💬 ${state.personA.name} open` }));
     if (it.bDiscuss) sub.appendChild(el("span", { class:"pill discuss", text:`💬 ${state.personB.name} open` }));
-    if (it.bothDiscuss && it.status === "mismatch") sub.appendChild(el("span", { class:"pill discuss", text:"Both open to discuss" }));
+    if (it.bothDiscuss) sub.appendChild(el("span", { class:"pill discuss", text:"Both open to discuss" }));
 
     card.appendChild(sub);
     results.appendChild(card);
@@ -628,6 +735,15 @@ document.getElementById("fileB").addEventListener("change", async (e) => {
 });
 
 document.getElementById("runCompare").addEventListener("click", renderResults);
+
+document.getElementById("revealAll").addEventListener("click", () => {
+  setAllAnswersBlurred(false);
+  setStatus("Revealed all answers");
+});
+document.getElementById("hideAll").addEventListener("click", () => {
+  setAllAnswersBlurred(true);
+  setStatus("Hid all answers");
+});
 
 renderQuiz();
 </script>
