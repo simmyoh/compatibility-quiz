@@ -1,0 +1,15 @@
+{
+  "site_title": "My Tools",
+  "tools": [
+    {
+      "slug": "countdown",
+      "name": "Countdown",
+      "description": "Timed countdown utility",
+      "template": "countdown_template.html",
+      "output": "countdown.html",
+      "replacements": {
+        "__TARGET__": "2026-01-13T02:38:00Z"
+      }
+    }
+  ]
+}
