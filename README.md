@@ -1,9 +1,14 @@
-## How this repo works
+# Static Tools Template (Python → GitHub Pages)
 
-- `src/` contains the Python generator
-- `templates/` contains HTML templates
-- `docs/` contains generated HTML served via GitHub Pages
+This repo is a template for building small HTML tools from templates using a Python build step,
+and hosting the generated output via GitHub Pages.
 
-To update the site:
-1. Run `python src/build_XXXXX.py`
-2. Commit the updated `docs/` files
+## Structure
+- `src/build.py` — generator script
+- `templates/` — HTML templates
+- `tools.json` — tool registry + replacement values
+- `docs/` — generated site (served by GitHub Pages)
+
+## Build locally
+```bash
+python src/build.py
