@@ -1,4 +1,4 @@
-# Static Tools Template (Python → GitHub Pages)
+# Static Tools (Python → GitHub Pages)
 
 This repo is a template for building small HTML tools from templates using a Python build step,
 and hosting the generated output via GitHub Pages.
